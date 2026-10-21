@@ -1,1 +1,31 @@
-{"background_color":"#201b17","description":"Build your own song hat and let the spotlight pick your karaoke song.","display":"standalone","icons":[{"purpose":"any","sizes":"192x192","src":"icon%20192.png","type":"image/png"},{"purpose":"any","sizes":"512x512","src":"icon%20512.png","type":"image/png"},{"purpose":"maskable","sizes":"512x512","src":"icon%20512.png","type":"image/png"}],"name":"Karaoke Dice Lab","orientation":"portrait","scope":"./","short_name":"Karaoke Dice","start_url":"./index.html","theme_color":"#201b17"}
+{
+  "background_color": "#201b17",
+  "description": "Build your own song hat and let the spotlight pick your karaoke song.",
+  "display": "standalone",
+  "icons": [
+    {
+      "purpose": "any",
+      "sizes": "192x192",
+      "src": "icon%20192.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "any",
+      "sizes": "512x512",
+      "src": "icon%20512.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "maskable",
+      "sizes": "512x512",
+      "src": "icon%20512.png",
+      "type": "image/png"
+    }
+  ],
+  "name": "NextUp!",
+  "orientation": "portrait",
+  "scope": "./",
+  "short_name": "NextUp!",
+  "start_url": "./index.html",
+  "theme_color": "#201b17"
+}

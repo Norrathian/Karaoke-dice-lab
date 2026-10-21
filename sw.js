@@ -1,5 +1,5 @@
-/* Karaoke Dice Lab service worker — offline cache + tap-to-apply updates (app v1.0) */
-var CACHE = 'kdl-v3';
+/* NextUp! service worker — offline cache + tap-to-apply updates (app v1.0) */
+var CACHE = 'kdl-v4';
 var ASSETS = ['./', './index.html', './manifest.json', './icon%20192.png', './icon%20512.png'];
 self.addEventListener('install', function (e) {
   // No automatic skipWaiting: a new version waits until the user taps
