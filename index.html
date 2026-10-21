@@ -16,7 +16,7 @@
   <link rel="icon" href="data:," />
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#201b17" />
-  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icon%20192.png" />
   <title>Karaoke Dice Lab</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Oswald:wght@500;600&display=swap');
@@ -35,6 +35,11 @@
 <body>
 <main class="shell">
   <header class="intro"><h1>Build your own song hat.</h1><p>Paste a set list or load a playlist file, then let the spotlight call the next song. No repeats keeps every pick fresh until reset.</p></header>
+  <div id="kdlAppBar" style="margin:12px 0 4px">
+    <button id="kdlInstallBtn" type="button" style="display:none;padding:10px 16px;border-radius:999px;border:1px solid #a67c2e;background:#2c241c;color:#ffd97a;font-weight:700;cursor:pointer">&#x1F4F2; Install Karaoke Dice Lab</button>
+    <div id="kdlUpdateBanner" style="display:none;margin-top:10px;background:linear-gradient(135deg,#b45309,#f59e0b);color:#fff;padding:12px 14px;border-radius:12px"><b>Update available!</b> A new version of Karaoke Dice Lab is ready. <button id="kdlUpdateNowBtn" type="button" style="background:#fff;color:#7c2d12;margin-left:8px;padding:6px 12px;border-radius:999px;border:0;font-weight:700;cursor:pointer">Tap to update</button></div>
+    <p style="margin:8px 0 0;font-size:.8rem;opacity:.65">Karaoke Dice Lab v<span id="kdlVer">1.0</span> · <button id="kdlCheckBtn" type="button" style="background:none;border:0;color:inherit;text-decoration:underline;cursor:pointer;font-size:.8rem;padding:0">Check for updates</button> <span id="kdlUpdStatus"></span></p>
+  </div>
   <div class="workspace">
     <section class="builder" aria-labelledby="build-heading">
       <div class="section-head"><h2 id="build-heading">Add songs</h2><span class="count" id="songCount">0 songs loaded</span></div>
@@ -100,5 +105,43 @@ noRepeatButton.addEventListener("click",function(){allowRepeats=false;noRepeatBu
 resetButton.addEventListener("click",function(){resetNightState();resultLabel.textContent="Waiting in the wings";result.textContent=songs.length?"Ready for another round":"Load your songs";setNotice("The full song list and singer rotation are back at the start.");render()});clearButton.addEventListener("click",function(){songs=[];resetNightState();songSearch.value="";searchQuery="";resultLabel.textContent="Waiting in the wings";result.textContent="Load your songs";setNotice("Song hat cleared.");render()});downloadButton.addEventListener("click",function(){if(songs.length)downloadBlob(songs.join("\n")+"\n","text/plain;charset=utf-8","karaoke-song-list.txt")});setlistButton.addEventListener("click",downloadSetlist);saveLoadoutButton.addEventListener("click",function(){var name=cleanText(loadoutName.value);if(!name){setNotice("Give the list a name first.",true);return}if(!songs.length){setNotice("Add songs before saving a list.",true);return}var data=getLoadouts();data[name]={songs:songs.slice(),singers:singers.slice(),savedAt:new Date().toISOString()};setLoadouts(data);loadoutName.value="";setNotice("Saved \u201c"+name+"\u201d.");renderLoadouts()});shareLinkButton.addEventListener("click",function(){if(!songs.length){setNotice("Add songs before sharing a link.",true);return}copyText(buildShareLink(),"Share link copied \u2014 anyone opening it gets this list.")});saveFileButton.addEventListener("click",function(){if(!songs.length){setNotice("Add songs before saving a file.",true);return}downloadBlob(JSON.stringify({app:"karaoke-dice-lab",version:1,savedAt:new Date().toISOString(),songs:songs,singers:singers},null,2),"application/json;charset=utf-8","karaoke-dice-lab-list.json");setNotice("List saved to your device.")});loadFileButton.addEventListener("click",function(){loadoutFileInput.click()});loadoutFileInput.addEventListener("change",function(){var file=loadoutFileInput.files[0];loadoutFileInput.value="";if(!file)return;var reader=new FileReader();reader.onload=function(){var text=String(reader.result||"");try{var data=JSON.parse(text);if(data&&Array.isArray(data.songs)){applyList(data.songs,data.singers,"List file loaded.");return}}catch(e){}try{var parsed=parseFileContent(text,file.name);if(parsed.length){mergeSongs(parsed,true)}else setNotice("No song names were found in that file.",true)}catch(err){setNotice("That file could not be read.",true)}};reader.onerror=function(){setNotice("That file could not be read.",true)};reader.readAsText(file)});singerForm.addEventListener("submit",function(event){event.preventDefault();var name=cleanText(singerInput.value);if(!name)return;var duplicate=singers.some(function(item){return item.toLocaleLowerCase()===name.toLocaleLowerCase()});if(!duplicate)singers.push(name);singerInput.value="";renderSingers()});restoreState();stateReady=true;renderLoadouts();render()})();
 </script>
 <script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}</script>
+<script>
+// PWA (v1.0): install prompt + tap-to-apply updates. Added 2026-10-20.
+// Self-contained; the app script above is untouched. (SW registration also
+// happens above — registering twice returns the same registration.)
+var KDL_VERSION='1.0';
+var kdlReg=null,kdlWaiting=null,kdlReloading=false,kdlPrompt=null;
+function kdlShowBanner(){var b=document.getElementById('kdlUpdateBanner');if(b)b.style.display='block';}
+if('serviceWorker' in navigator){
+ window.addEventListener('load',function(){
+  navigator.serviceWorker.register('./sw.js').then(function(reg){
+   kdlReg=reg;
+   if(reg.waiting&&navigator.serviceWorker.controller){kdlWaiting=reg.waiting;kdlShowBanner();}
+   reg.addEventListener('updatefound',function(){
+    var nw=reg.installing;if(!nw)return;
+    nw.addEventListener('statechange',function(){if(nw.state==='installed'&&navigator.serviceWorker.controller){kdlWaiting=nw;kdlShowBanner();}});
+   });
+  }).catch(function(){});
+  navigator.serviceWorker.addEventListener('controllerchange',function(){if(kdlReloading)return;kdlReloading=true;location.reload();});
+ });
+}
+window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();kdlPrompt=e;var b=document.getElementById('kdlInstallBtn');if(b)b.style.display='inline-block';});
+document.addEventListener('DOMContentLoaded',function(){
+ var ib=document.getElementById('kdlInstallBtn');
+ if(ib)ib.addEventListener('click',function(){if(kdlPrompt){kdlPrompt.prompt();kdlPrompt.userChoice.then(function(){kdlPrompt=null;ib.style.display='none';});}});
+ var ub=document.getElementById('kdlUpdateNowBtn');
+ if(ub)ub.addEventListener('click',function(){if(kdlWaiting){kdlWaiting.postMessage({type:'SKIP_WAITING'});}else{location.reload();}});
+ var cb=document.getElementById('kdlCheckBtn');
+ if(cb)cb.addEventListener('click',function(){
+  var st=document.getElementById('kdlUpdStatus');
+  if(!kdlReg){st.textContent=' — open the installed app to check.';return;}
+  st.textContent=' — checking\u2026';
+  kdlReg.update().then(function(){setTimeout(function(){
+   if(kdlWaiting||kdlReg.waiting){kdlWaiting=kdlReg.waiting;kdlShowBanner();st.textContent=' — update found, tap the banner above.';}
+   else st.textContent=' — you are on the latest version (v'+KDL_VERSION+').';
+  },600);}).catch(function(){st.textContent=' — could not check (offline?). Updates also arrive automatically.';});
+ });
+});
+</script>
 </body>
 </html>

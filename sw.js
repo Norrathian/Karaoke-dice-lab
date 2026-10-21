@@ -1,7 +1,13 @@
-var CACHE = 'kdl-v2';
-var ASSETS = ['./', './index.html', './manifest.json', './icons/icon-192.png', './icons/icon-512.png'];
+/* Karaoke Dice Lab service worker — offline cache + tap-to-apply updates (app v1.0) */
+var CACHE = 'kdl-v3';
+var ASSETS = ['./', './index.html', './manifest.json', './icon%20192.png', './icon%20512.png'];
 self.addEventListener('install', function (e) {
-  e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(ASSETS); }).then(function () { return self.skipWaiting(); }));
+  // No automatic skipWaiting: a new version waits until the user taps
+  // "Tap to update" in the app (or fully closes and reopens it).
+  e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(ASSETS); }));
+});
+self.addEventListener('message', function (e) {
+  if (e.data && e.data.type === 'SKIP_WAITING') self.skipWaiting();
 });
 self.addEventListener('activate', function (e) {
   e.waitUntil(caches.keys().then(function (keys) {
@@ -9,5 +15,6 @@ self.addEventListener('activate', function (e) {
   }).then(function () { return self.clients.claim(); }));
 });
 self.addEventListener('fetch', function (e) {
-  e.respondWith(caches.match(e.request).then(function (r) { return r || fetch(e.request); }));
+  if (e.request.method !== 'GET') return;
+  e.respondWith(caches.match(e.request, { ignoreSearch: true }).then(function (r) { return r || fetch(e.request); }));
 });
